@@ -1,8 +1,13 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Contributions } from "@/components/contributions";
+import { projects } from "@/lib/projects";
+import { getAllPosts } from "@/lib/mdx";
 
 export default function Home() {
+  const featured = projects.slice(0, 4);
+  const posts = getAllPosts("blog").slice(0, 3);
+  const papers = getAllPosts("research").slice(0, 3);
   return (
     <div className="flex flex-col gap-16">
       <section className="flex items-center gap-5">
@@ -26,15 +31,86 @@ export default function Home() {
       </Section>
 
       <Section title="projects" href="/projects">
-        <p className="text-muted text-sm">A few things I&apos;ve built recently.</p>
+        {featured.length === 0 ? (
+          <p className="text-muted text-sm">Nothing here yet.</p>
+        ) : (
+          <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {featured.map((p) => (
+              <li key={p.name}>
+                <Link
+                  href="/projects"
+                  className="group flex gap-3 items-center rounded-md ring-1 ring-border p-2.5 hover:ring-muted/50 transition-colors"
+                >
+                  <div className="relative h-12 w-16 shrink-0 overflow-hidden rounded bg-border/40">
+                    <Image
+                      src={p.image}
+                      alt={p.name}
+                      fill
+                      sizes="(max-width: 640px) 100vw, 320px"
+                      quality={95}
+                      priority
+                      className="object-cover"
+                    />
+                  </div>
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-sm text-foreground truncate">
+                      {p.name}
+                    </span>
+                    <span className="text-xs text-muted truncate">
+                      {p.summary}
+                    </span>
+                  </div>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
       </Section>
 
       <Section title="writing" href="/blog">
-        <p className="text-muted text-sm">Notes and posts.</p>
+        {posts.length === 0 ? (
+          <p className="text-muted text-sm">Nothing here yet.</p>
+        ) : (
+          <ul className="flex flex-col divide-y divide-border">
+            {posts.map((p) => (
+              <li
+                key={p.slug}
+                className="py-2.5 flex items-baseline justify-between gap-6"
+              >
+                <Link
+                  href={`/blog/${p.slug}`}
+                  className="text-sm hover:underline underline-offset-4"
+                >
+                  {p.title}
+                </Link>
+                <span className="text-xs text-muted shrink-0">{p.date}</span>
+              </li>
+            ))}
+          </ul>
+        )}
       </Section>
 
       <Section title="research" href="/research">
-        <p className="text-muted text-sm">Papers and long-form work.</p>
+        {papers.length === 0 ? (
+          <p className="text-muted text-sm">Nothing here yet.</p>
+        ) : (
+          <ul className="flex flex-col divide-y divide-border">
+            {papers.map((p) => (
+              <li
+                key={p.slug}
+                className="py-2.5 flex items-baseline justify-between gap-6"
+              >
+                <Link
+                  href={`/research/${p.slug}`}
+                  className="text-sm hover:underline underline-offset-4"
+                >
+                  {p.title}
+                </Link>
+                <span className="text-xs text-muted shrink-0">{p.date}</span>
+              </li>
+            ))}
+          </ul>
+        )}
       </Section>
     </div>
   );
