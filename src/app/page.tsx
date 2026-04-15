@@ -1,10 +1,19 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Contributions } from "@/components/contributions";
 
 export default function Home() {
   return (
     <div className="flex flex-col gap-16">
-      <section className="flex flex-col gap-4">
+      <section className="flex items-center gap-5">
+        <Image
+          src="/myself.jpg"
+          alt="Govind Vashishat"
+          width={160}
+          height={160}
+          priority
+          className="h-32 w-32 sm:h-36 sm:w-36 rounded-full object-cover ring-1 ring-border shrink-0"
+        />
         <p className="text-muted leading-relaxed">
           CS student and software developer. I build things — tools,
           experiments, and the occasional research paper. Previously{" "}
