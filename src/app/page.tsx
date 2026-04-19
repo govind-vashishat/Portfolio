@@ -21,8 +21,7 @@ export default function Home() {
         />
         <p className="text-muted leading-relaxed">
           CS student and software developer. I build things — tools,
-          experiments, and the occasional research paper. Previously{" "}
-          <span className="text-foreground">Azen</span>.
+          experiments, and the occasional research paper.
         </p>
       </section>
 

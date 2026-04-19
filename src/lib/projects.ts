@@ -12,7 +12,6 @@ export const projects: Project[] = [
     name: "Azen",
     summary: "Self host-able memory layer for AI agents",
     image: "/projects/azen.png",
-    website: "https://example.com",
     github: "https://github.com/azen-sh/azen-sh",
     blog: "/blog/azen",
   },

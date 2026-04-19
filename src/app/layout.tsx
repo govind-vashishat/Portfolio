@@ -18,7 +18,6 @@ export const metadata: Metadata = {
   title: "Govind Vashishat",
   description: "CS student & software developer — projects, writing, research.",
 };
-
 export default function RootLayout({
   children,
 }: Readonly<{
