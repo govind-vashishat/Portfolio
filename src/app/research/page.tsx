@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { getAllPosts } from "@/lib/mdx";
 
-export default function ResearchPage() {
-  const papers = getAllPosts("research");
+export default async function ResearchPage() {
+  const papers = await getAllPosts("research");
   return (
     <div className="flex flex-col gap-8">
       <h1 className="text-2xl font-medium tracking-tight">research</h1>

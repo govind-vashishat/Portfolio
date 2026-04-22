@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { getAllPosts } from "@/lib/mdx";
 
-export default function BlogPage() {
-  const posts = getAllPosts("blog");
+export default async function BlogPage() {
+  const posts = await getAllPosts("blog");
   return (
     <div className="flex flex-col gap-8">
       <h1 className="text-2xl font-medium tracking-tight">blog</h1>

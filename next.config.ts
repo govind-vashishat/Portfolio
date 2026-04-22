@@ -5,6 +5,17 @@ const withMDX = createMDX({});
 
 const nextConfig: NextConfig = {
   pageExtensions: ["ts", "tsx", "md", "mdx"],
+  images: {
+    qualities: [75, 95],
+  },
+  async rewrites() {
+    return [
+      {
+        source: "/admin",
+        destination: "/admin/index.html",
+      },
+    ];
+  },
 };
 
 export default withMDX(nextConfig);

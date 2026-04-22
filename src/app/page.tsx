@@ -4,10 +4,12 @@ import { Contributions } from "@/components/contributions";
 import { projects } from "@/lib/projects";
 import { getAllPosts } from "@/lib/mdx";
 
-export default function Home() {
+export default async function Home() {
   const featured = projects.slice(0, 4);
-  const posts = getAllPosts("blog").slice(0, 3);
-  const papers = getAllPosts("research").slice(0, 3);
+  const allPosts = await getAllPosts("blog");
+  const posts = allPosts.slice(0, 3);
+  const allPapers = await getAllPosts("research");
+  const papers = allPapers.slice(0, 3);
   return (
     <div className="flex flex-col gap-16">
       <section className="flex items-center gap-5">

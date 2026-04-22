@@ -1,5 +1,4 @@
-import fs from "node:fs";
-import path from "node:path";
+import client from "../../tina/__generated__/client";
 
 export type PostMeta = {
   slug: string;
@@ -7,63 +6,70 @@ export type PostMeta = {
   date: string;
 };
 
-const CONTENT_ROOT = path.join(process.cwd(), "content");
-
-function readDir(kind: "blog" | "research"): string[] {
-  const dir = path.join(CONTENT_ROOT, kind);
-  if (!fs.existsSync(dir)) return [];
-  return fs
-    .readdirSync(dir)
-    .filter((f) => f.endsWith(".mdx"))
-    .map((f) => f.replace(/\.mdx$/, ""));
-}
-
-function parseFrontmatter(source: string): {
-  meta: Record<string, string>;
-  body: string;
-} {
-  const match = source.match(/^---\n([\s\S]*?)\n---\n?([\s\S]*)$/);
-  if (!match) return { meta: {}, body: source };
-  const meta: Record<string, string> = {};
-  for (const line of match[1].split("\n")) {
-    const m = line.match(/^(\w+):\s*(.*)$/);
-    if (m) meta[m[1]] = m[2].replace(/^["']|["']$/g, "");
+export async function getAllPosts(
+  kind: "blog" | "research",
+): Promise<PostMeta[]> {
+  if (kind === "blog") {
+    const res = await client.queries.blogConnection();
+    const edges = res.data.blogConnection.edges ?? [];
+    return edges
+      .map((edge) => {
+        const node = edge!.node!;
+        return {
+          slug: node._sys.filename,
+          title: node.title,
+          date: node.date ?? "",
+        };
+      })
+      .sort((a, b) => (a.date < b.date ? 1 : -1));
   }
-  return { meta, body: match[2] };
+
+  const res = await client.queries.researchConnection();
+  const edges = res.data.researchConnection.edges ?? [];
+  return edges
+    .map((edge) => {
+      const node = edge!.node!;
+      return {
+        slug: node._sys.filename,
+        title: node.title,
+        date: node.date ?? "",
+      };
+    })
+    .sort((a, b) => (a.date < b.date ? 1 : -1));
 }
 
-export function getAllPosts(kind: "blog" | "research"): PostMeta[] {
-  const slugs = readDir(kind);
-  const posts = slugs.map((slug) => {
-    const file = fs.readFileSync(
-      path.join(CONTENT_ROOT, kind, `${slug}.mdx`),
-      "utf8",
-    );
-    const { meta } = parseFrontmatter(file);
+export async function getBlogPost(slug: string) {
+  try {
+    const res = await client.queries.blog({
+      relativePath: `${slug}.mdx`,
+    });
     return {
-      slug,
-      title: meta.title ?? slug,
-      date: meta.date ?? "",
+      body: res.data.blog.body,
+      meta: {
+        slug,
+        title: res.data.blog.title,
+        date: res.data.blog.date ?? "",
+      } as PostMeta,
     };
-  });
-  return posts.sort((a, b) => (a.date < b.date ? 1 : -1));
+  } catch {
+    return null;
+  }
 }
 
-export async function getPost(kind: "blog" | "research", slug: string) {
-  const slugs = readDir(kind);
-  if (!slugs.includes(slug)) return null;
-  const mod = await import(`../../content/${kind}/${slug}.mdx`);
-  const file = fs.readFileSync(
-    path.join(CONTENT_ROOT, kind, `${slug}.mdx`),
-    "utf8",
-  );
-  const { meta } = parseFrontmatter(file);
-  return {
-    Content: mod.default as React.ComponentType,
-    meta: {
-      slug,
-      title: meta.title ?? slug,
-      date: meta.date ?? "",
-    } as PostMeta,
-  };
+export async function getResearchPost(slug: string) {
+  try {
+    const res = await client.queries.research({
+      relativePath: `${slug}.mdx`,
+    });
+    return {
+      body: res.data.research.body,
+      meta: {
+        slug,
+        title: res.data.research.title,
+        date: res.data.research.date ?? "",
+      } as PostMeta,
+    };
+  } catch {
+    return null;
+  }
 }
