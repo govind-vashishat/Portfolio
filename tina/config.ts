@@ -44,6 +44,12 @@ export default defineConfig({
             required: true,
           },
           {
+            type: "image",
+            name: "cover",
+            label: "Cover Image",
+            required: true,
+          },
+          {
             type: "rich-text",
             name: "body",
             label: "Body",
@@ -71,6 +77,12 @@ export default defineConfig({
             type: "string",
             name: "date",
             label: "Date",
+            required: true,
+          },
+          {
+            type: "image",
+            name: "cover",
+            label: "Cover Image",
             required: true,
           },
           {

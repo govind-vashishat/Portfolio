@@ -72,19 +72,32 @@ export default async function Home() {
         {posts.length === 0 ? (
           <p className="text-muted text-sm">Nothing here yet.</p>
         ) : (
-          <ul className="flex flex-col divide-y divide-border">
+          <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {posts.map((p) => (
-              <li
-                key={p.slug}
-                className="py-2.5 flex items-baseline justify-between gap-6"
-              >
+              <li key={p.slug}>
                 <Link
                   href={`/blog/${p.slug}`}
-                  className="text-sm hover:underline underline-offset-4"
+                  className="flex gap-3 items-center rounded-md ring-1 ring-border p-2.5 hover:ring-muted/50 transition-colors"
                 >
-                  {p.title}
+                  <div className="relative h-12 w-16 shrink-0 overflow-hidden rounded bg-border/40">
+                    <Image
+                      src={p.cover}
+                      alt={p.title}
+                      fill
+                      sizes="(max-width: 640px) 100vw, 320px"
+                      quality={95}
+                      className="object-cover"
+                    />
+                  </div>
+                  <div className="flex flex-col min-w-0 flex-1">
+                    <span className="text-sm text-foreground truncate">
+                      {p.title}
+                    </span>
+                    <span className="text-xs text-muted truncate">
+                      {p.date}
+                    </span>
+                  </div>
                 </Link>
-                <span className="text-xs text-muted shrink-0">{p.date}</span>
               </li>
             ))}
           </ul>
@@ -95,19 +108,32 @@ export default async function Home() {
         {papers.length === 0 ? (
           <p className="text-muted text-sm">Nothing here yet.</p>
         ) : (
-          <ul className="flex flex-col divide-y divide-border">
+          <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {papers.map((p) => (
-              <li
-                key={p.slug}
-                className="py-2.5 flex items-baseline justify-between gap-6"
-              >
+              <li key={p.slug}>
                 <Link
                   href={`/research/${p.slug}`}
-                  className="text-sm hover:underline underline-offset-4"
+                  className="flex gap-3 items-center rounded-md ring-1 ring-border p-2.5 hover:ring-muted/50 transition-colors"
                 >
-                  {p.title}
+                  <div className="relative h-12 w-16 shrink-0 overflow-hidden rounded bg-border/40">
+                    <Image
+                      src={p.cover}
+                      alt={p.title}
+                      fill
+                      sizes="(max-width: 640px) 100vw, 320px"
+                      quality={95}
+                      className="object-cover"
+                    />
+                  </div>
+                  <div className="flex flex-col min-w-0 flex-1">
+                    <span className="text-sm text-foreground truncate">
+                      {p.title}
+                    </span>
+                    <span className="text-xs text-muted truncate">
+                      {p.date}
+                    </span>
+                  </div>
                 </Link>
-                <span className="text-xs text-muted shrink-0">{p.date}</span>
               </li>
             ))}
           </ul>

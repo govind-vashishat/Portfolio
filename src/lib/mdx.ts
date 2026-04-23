@@ -4,6 +4,7 @@ export type PostMeta = {
   slug: string;
   title: string;
   date: string;
+  cover: string;
 };
 
 export async function getAllPosts(
@@ -19,6 +20,7 @@ export async function getAllPosts(
           slug: node._sys.filename,
           title: node.title,
           date: node.date ?? "",
+          cover: node.cover ?? "",
         };
       })
       .sort((a, b) => (a.date < b.date ? 1 : -1));
@@ -33,6 +35,7 @@ export async function getAllPosts(
         slug: node._sys.filename,
         title: node.title,
         date: node.date ?? "",
+        cover: node.cover ?? "",
       };
     })
     .sort((a, b) => (a.date < b.date ? 1 : -1));
@@ -49,6 +52,7 @@ export async function getBlogPost(slug: string) {
         slug,
         title: res.data.blog.title,
         date: res.data.blog.date ?? "",
+        cover: res.data.blog.cover ?? "",
       } as PostMeta,
     };
   } catch {
@@ -67,6 +71,7 @@ export async function getResearchPost(slug: string) {
         slug,
         title: res.data.research.title,
         date: res.data.research.date ?? "",
+        cover: res.data.research.cover ?? "",
       } as PostMeta,
     };
   } catch {
