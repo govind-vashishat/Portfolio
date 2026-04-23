@@ -1,0 +1,61 @@
+---
+title: 'Azen: a self-hostable memory infrastructure for AI agents'
+date: '2026-04-20'
+---
+
+
+###### ![](/uploads/Screenshot%202026-04-14%20at%206.06.58%E2%80%AFPM.png)Over the last few weeks, I built Azen, an open-source memory infrastructure layer for AI agents.
+
+###### The idea came from a simple problem: most AI apps can respond well in the moment, but they struggle to remember users, preferences, context, and long-term facts across sessions in a reliable way. 
+
+###### So I built Azen as a self-hostable memory backend that any AI application can plug into.
+
+###### At a high level, Azen lets developers store, retrieve, update, and search memories through a single API. But under the hood, it does more than basic CRUD. Every memory is treated as something that should be searchable semantically, connected relationally, and scoped properly for real multi-user applications.
+
+###### The architecture is built around a fan-out model.
+
+###### When a new memory is created, Azen first stores the canonical record in PostgreSQL using Drizzle ORM. From there, the memory is processed asynchronously through BullMQ with Redis. The worker generates embeddings, upserts the vector representation into either pgvector or Qdrant, and also pushes the memory into Neo4j as a graph node. On top of that, it runs entity extraction using an LLM so related memories can be connected through shared entities.
+
+###### That means memory in Azen is not just stored as text.
+
+###### It becomes:
+
+###### a structured record in Postgres
+
+###### a semantic vector for meaning-based retrieval
+
+###### a graph node connected to entities for relationship-aware search
+
+###### This design makes the system much more useful for real agents. A semantic search can find memories that are similar in meaning, while graph expansion can surface related context that may not share exact wording. For example, a memory like “the user loves Italian food” can become connected to another memory like “the user is allergic to peanuts” through shared food and preference entities, helping an agent reason with richer context.
+
+###### On the API side, I built the server with Hono and TypeScript running on Bun. The API exposes endpoints for creating memories, listing them, updating them, deleting them, and running semantic search. All validation is handled with Zod, and shared types live in a dedicated package so the contracts stay consistent across the monorepo.
+
+###### One part I’m especially happy with is that Azen is not limited to just one interface.
+
+###### I designed it as a monorepo with multiple surfaces:
+
+###### /server for the REST API
+
+###### /core for the memory engine and infrastructure logic
+
+###### /types for shared schemas and interfaces
+
+###### /mcp so tools like Claude Desktop or Cursor can talk to Azen over MCP
+
+###### /vercel-ai so developers can give LLMs memory tools inside the Vercel AI SDK
+
+###### /web as a dashboard to manually inspect, search, and manage memories
+
+###### That made the project feel less like a demo and more like a real platform.
+
+###### I also made Azen provider-agnostic where it matters. Embeddings use an abstraction layer, vector storage is pluggable, and the system can work with OpenAI-compatible endpoints instead of being tightly locked to a single vendor. It also supports userId and appId scoping so memory stays multi-tenant and usable across different apps or agent contexts.
+
+###### From an engineering perspective, It pushed me to think about how data moves across multiple stores, how to keep one source of truth while still supporting semantic and graph-based retrieval, and how to expose the same infrastructure through APIs, SDKs, MCP tools, and a UI without duplicating business logic.
+
+###### What I like most about Azen is that it solves a practical problem in agent engineering.
+
+###### If AI agents are going to become genuinely useful, they need memory that is persistent, queryable, relational, and portable. Azen is my attempt at building that layer in an open and self-hostable way.
+
+###### Building Azen made me think less about prompting and more about systems design for AI products. And I think that shift is important. The next generation of AI apps will not just be about model calls. They’ll be about the infrastructure around the model: memory, retrieval, orchestration, observability, and developer experience.
+
+###### That’s exactly the kind of software I want to keep building.
