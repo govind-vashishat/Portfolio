@@ -6,58 +6,110 @@ cover: /uploads/azen-cover.png
 
 ![](/uploads/azen-cover.png)
 
-Over the last few weeks, I built Azen, an open-source memory infrastructure layer for AI agents.
+I recently built Azen, an open-source, self-hostable memory infrastructure layer for AI agents.
 
-###### The idea came from a simple problem: most AI apps can respond well in the moment, but they struggle to remember users, preferences, context, and long-term facts across sessions in a reliable way.
+The problem I wanted to solve was straightforward: most AI apps are good at generating responses, but weak at remembering users over time. In practice, that means developers end up stitching together ad hoc memory systems that are hard to search, hard to scale, and tightly coupled to one interface or one model provider.
 
-###### So I built Azen as a self-hostable memory backend that any AI application can plug into.
+I wanted to build a proper memory backend that agents could use as infrastructure.
 
-###### At a high level, Azen lets developers store, retrieve, update, and search memories through a single API. But under the hood, it does more than basic CRUD. Every memory is treated as something that should be searchable semantically, connected relationally, and scoped properly for real multi-user applications.
+So I built Azen as a Bun + TypeScript monorepo with a clean separation between the API layer, the core memory engine, shared schemas, client integrations, and a management UI.
 
-###### The architecture is built around a fan-out model.
+At the center of the system is a fan-out memory pipeline.
 
-###### When a new memory is created, Azen first stores the canonical record in PostgreSQL using Drizzle ORM. From there, the memory is processed asynchronously through BullMQ with Redis. The worker generates embeddings, upserts the vector representation into either pgvector or Qdrant, and also pushes the memory into Neo4j as a graph node. On top of that, it runs entity extraction using an LLM so related memories can be connected through shared entities.
+When a memory is created, Azen first writes the canonical record into PostgreSQL\*\* using \*\*Drizzle ORM. That record includes \`userId\`, \`appId\`, content, metadata, timestamps, and optional TTL via \`expiresAt\`. From there, the write is pushed into a BullMQ queue backed by Redis, where an async worker takes over.
 
-###### That means memory in Azen is not just stored as text.
+That worker does the rest of the heavy lifting:
 
-###### It becomes:
+\- generates an embedding using an EmbeddingProvider abstraction
 
-###### a structured record in Postgres
+\- upserts the vector into either pgvector or Qdrant
 
-###### a semantic vector for meaning-based retrieval
+\- creates or updates the corresponding Neo4j memory node
 
-###### a graph node connected to entities for relationship-aware search
+\- runs LLM-based entity extraction
 
-###### This design makes the system much more useful for real agents. A semantic search can find memories that are similar in meaning, while graph expansion can surface related context that may not share exact wording. For example, a memory like “the user loves Italian food” can become connected to another memory like “the user is allergic to peanuts” through shared food and preference entities, helping an agent reason with richer context.
+\- links the memory to extracted entities inside the graph
 
-###### On the API side, I built the server with Hono and TypeScript running on Bun. The API exposes endpoints for creating memories, listing them, updating them, deleting them, and running semantic search. All validation is handled with Zod, and shared types live in a dedicated package so the contracts stay consistent across the monorepo.
+This was an intentional design choice. I didn’t want the API request path to block on embedding generation, graph enrichment, and downstream sync work. By splitting canonical storage from async enrichment, the system is cleaner and much more production-friendly.
 
-###### One part I’m especially happy with is that Azen is not limited to just one interface.
+Azen’s search layer is also more than plain vector similarity.
 
-###### I designed it as a monorepo with multiple surfaces:
+The \`SearchService\` first embeds the incoming query and runs a top-K nearest-neighbor search against the configured vector store. Then, if graph expansion is enabled, it uses the initial vector hits as anchors and asks Neo4j for other memories that share extracted entities with them. Those graph-derived results are merged back into the result set with a discounted relevance score and labeled separately by source.
 
-###### /server for the REST API
+That means the search stack supports two retrieval modes at once:
 
-###### /core for the memory engine and infrastructure logic
+\- semantic retrieval through embeddings
 
-###### /types for shared schemas and interfaces
+\- relationship-aware retrieval through graph traversal
 
-###### /mcp so tools like Claude Desktop or Cursor can talk to Azen over MCP
+This is useful because human memory is not purely lexical. Two memories can be related even if they are phrased very differently, and the graph layer helps recover that extra context.
 
-###### /vercel-ai so developers can give LLMs memory tools inside the Vercel AI SDK
+To support that graph expansion, I added an entity extraction pipeline powered by an \*\*LLMProvider\*\* abstraction. Right now the repo uses an OpenAI-backed implementation, with \`gpt-4o-mini\` as the default entity extraction model. The extracted entities are normalized into a constrained schema with fields like \`name\`, \`type\`, and \`relation\`, then stored in Neo4j using \`MERGE\` patterns to keep graph writes idempotent.
 
-###### /web as a dashboard to manually inspect, search, and manage memories
+On the vector side, Azen supports a pluggable \`VectorStore\` interface. In the repo, there are two implementations:
 
-###### That made the project feel less like a demo and more like a real platform.
+\- pgvector, which keeps embeddings inside Postgres for simpler deployments
 
-###### I also made Azen provider-agnostic where it matters. Embeddings use an abstraction layer, vector storage is pluggable, and the system can work with OpenAI-compatible endpoints instead of being tightly locked to a single vendor. It also supports userId and appId scoping so memory stays multi-tenant and usable across different apps or agent contexts.
+\- Qdrant, for cases where a dedicated vector database is preferred
 
-###### From an engineering perspective, It pushed me to think about how data moves across multiple stores, how to keep one source of truth while still supporting semantic and graph-based retrieval, and how to expose the same infrastructure through APIs, SDKs, MCP tools, and a UI without duplicating business logic.
+That lets the same memory engine work for both lightweight self-hosted setups and more specialized vector search deployments.
 
-###### What I like most about Azen is that it solves a practical problem in agent engineering.
+The project is also multi-tenant by design. Every memory operation is scoped by \`userId\` and \`appId\`, so the same Azen instance can support multiple applications or agents without mixing memory contexts. Shared schemas are centralized in \`@azen-sh/types\` using Zod, which keeps the contracts consistent across the API server, core engine, tests, and integrations.
 
-###### If AI agents are going to become genuinely useful, they need memory that is persistent, queryable, relational, and portable. Azen is my attempt at building that layer in an open and self-hostable way.
+On top of the backend, I shipped multiple interfaces around the same memory system.
 
-###### Building Azen made me think less about prompting and more about systems design for AI products. And I think that shift is important. The next generation of AI apps will not just be about model calls. They’ll be about the infrastructure around the model: memory, retrieval, orchestration, observability, and developer experience.
+The main API is exposed through \`@azen-sh/server\`, a Hono REST service with endpoints for:
 
-###### That’s exactly the kind of software I want to keep building.
+\- creating memories
+
+\- listing memories
+
+\- fetching by ID
+
+\- updating and deleting memories
+
+\- semantic search with optional graph expansion
+
+\- health checks
+
+I also added a lightweight React dashboard in \`@azen-sh/web\` so memories can be inspected and managed from a browser. It includes views for listing stored memories, semantic search, and creating new memory records manually.
+
+One of the most important parts of the project is that I didn’t stop at the API.
+
+I built MCP capabilities through \`@azen-sh/mcp\`, which exposes Azen as a Model Context Protocol server over stdio. That means tools like Claude Desktop, Cursor, or any MCP-compatible client can directly store, search, list, and delete memories without custom glue code. Instead of forcing developers to wire raw REST calls into every agent environment, Azen can plug into the growing MCP ecosystem as a memory layer.
+
+I also built a Vercel AI SDK integration in \`@azen-sh/vercel-ai\`, packaged as an npm module. It gives language models a ready-made set of memory tools like:
+
+\- \`addMemory\`
+
+\- \`searchMemories\`
+
+\- \`listMemories\`
+
+\- \`getMemory\`
+
+\- \`updateMemory\`
+
+\- \`deleteMemory\`
+
+\- \`deleteAllMemories\`
+
+With that package, developers can pass \`azenTools()\` into \`generateText\` or \`streamText\` and let the model decide when to store and recall memory on its own. I like this part because it turns Azen from “just a backend” into something that fits naturally into real agent frameworks and modern LLM application stacks.
+
+From an engineering perspective, this project taught me a lot about building AI infrastructure instead of just AI features.
+
+It pushed me to think about:
+
+\- async system boundaries
+
+\- multi-store consistency
+
+\- retrieval architecture
+
+\- typed API contracts
+
+\- provider abstractions
+
+\- developer-facing integrations
+
+Azen started as a memory API, but it turned into a broader platform for long-term agent memory: canonical storage in Postgres, semantic recall through vectors, contextual expansion through graphs, and multiple ways for developers and AI tools to plug into the system.
