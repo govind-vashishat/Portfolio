@@ -15,4 +15,12 @@ export const projects: Project[] = [
     github: "https://github.com/azen-sh/azen-sh",
     blog: "/blog/azen",
   },
+  {
+    name: "InvoiceNudger",
+    summary:
+      "A platform that automatically follows up on unpaid invoices with smart, personalized reminders.",
+    image: "/projects/invoice.png",
+    website: "https://invoicenudger.vercel.app",
+    github: "https://github.com/govind-vashishat/Invoice-nudger",
+  },
 ];
