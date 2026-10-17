@@ -9,7 +9,7 @@ export default function Home() {
     <div className="flex flex-col gap-14">
       <section className="flex items-center gap-5">
         <Image
-          src="/myself.jpg"
+          src="/myself.png"
           alt="Govind Vashishat"
           width={160}
           height={160}

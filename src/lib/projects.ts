@@ -1,6 +1,7 @@
 import type { StaticImageData } from "next/image";
 import azen from "../../public/projects/azen.png";
 import invoice from "../../public/projects/invoice.png";
+import kivo from "../../public/projects/kivo.png";
 
 export type Project = {
   name: string;
@@ -14,6 +15,14 @@ export type Project = {
 };
 
 export const projects: Project[] = [
+  {
+    name: "Kivo",
+    summary:
+      "Open-source coding agent for your terminal. Describe a task and it reads your code, edits files, and runs your tests until it's done.",
+    image: kivo,
+    website: "https://kivoforge.vercel.app",
+    github: "https://github.com/govind-vashishat/Kivo",
+  },
   {
     name: "Azen",
     summary: "Self host-able memory layer for AI agents",
