@@ -1,25 +1,30 @@
+import type { StaticImageData } from "next/image";
+import azen from "../../public/projects/azen.png";
+import invoice from "../../public/projects/invoice.png";
+
 export type Project = {
   name: string;
   summary: string;
-  image: string;
+  /** Statically imported so each image keeps its own dimensions and gets a blur placeholder. */
+  image: StaticImageData;
   website?: string;
   github?: string;
-  blog?: string;
+  /** Optional link to a longer write-up. External URL, or an internal path. */
+  writeup?: string;
 };
 
 export const projects: Project[] = [
   {
     name: "Azen",
     summary: "Self host-able memory layer for AI agents",
-    image: "/projects/azen.png",
+    image: azen,
     github: "https://github.com/azen-sh/azen-sh",
-    blog: "/blog/azen",
   },
   {
     name: "InvoiceNudger",
     summary:
       "A platform that automatically follows up on unpaid invoices with smart, personalized reminders.",
-    image: "/projects/invoice.png",
+    image: invoice,
     website: "https://invoicenudger.vercel.app",
     github: "https://github.com/govind-vashishat/Invoice-nudger",
   },
