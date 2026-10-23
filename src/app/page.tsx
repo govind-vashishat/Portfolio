@@ -18,7 +18,7 @@ export default function Home() {
         />
         <p className="text-pretty leading-relaxed text-muted">
           CS student and software developer. I build things — tools,
-          experiments, and the occasional research paper.
+          experiments.
         </p>
       </section>
 
