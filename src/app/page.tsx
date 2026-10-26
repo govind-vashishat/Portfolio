@@ -17,7 +17,7 @@ export default function Home() {
           className="h-32 w-32 sm:h-36 sm:w-36 rounded-full object-cover ring-1 ring-white/10 shrink-0"
         />
         <p className="text-pretty leading-relaxed text-muted">
-          CS student and software developer. I build things — tools,
+          CS student and software developer. I build software, tools,
           experiments.
         </p>
       </section>
